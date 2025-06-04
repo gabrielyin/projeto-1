@@ -85,7 +85,7 @@ export function BudgetPreview({ client, products, template, notes, total, compac
 
   if (compact) {
     return (
-      <div className={`min-h-full ${styles.container}`}>
+      <div className={`h-[1123px] w-[794px] ${styles.container}`}>
         {/* Header Compacto */}
         <div className={`${styles.header} p-4`}>
           <div className="flex justify-between items-start">
