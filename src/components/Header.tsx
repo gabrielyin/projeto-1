@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { FileText, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Login } from "./LogIn";
+import { Login } from "./Login";
 import { Cadastro } from "./Cadastro";
 
 export function Header() {
