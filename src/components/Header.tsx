@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { FileText, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Login } from "./LogIn";
+import { Cadastro } from "./Cadastro";
 
 export function Header() {
   const navItems = [
@@ -32,8 +34,12 @@ export function Header() {
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost">Sign In</Button>
-          <Button>Começar</Button>
+          <Login>
+            <Button variant="ghost">Sign In</Button>
+          </Login>
+          <Cadastro>
+            <Button>Começar</Button>
+          </Cadastro>
         </div>
 
         {/* Mobile Navigation */}
