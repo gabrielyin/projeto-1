@@ -38,14 +38,14 @@ export function TemplateSelector({ selectedTemplate, onTemplateChange }: Templat
   return (
     <div className="space-y-3">
       <h3 className="font-semibold text-sm">Escolha o Template</h3>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex gap-2">
         {templates.map((template) => (
           <Button
             key={template.id}
             variant={selectedTemplate === template.id ? "default" : "outline"}
             size="sm"
             onClick={() => onTemplateChange(template.id)}
-            className="flex flex-col items-center p-3 h-auto"
+            className="flex flex-col items-center p-3 h-auto flex-1"
           >
             <div className={`w-full h-6 rounded mb-2 ${template.color}`} />
             <div className="text-xs font-medium">{template.name}</div>

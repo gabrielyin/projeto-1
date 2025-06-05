@@ -84,13 +84,11 @@ export default function Dashboard() {
               <p className="text-gray-600">Gerencie seus orçamentos</p>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Orçamento
-                </Button>
-              </Link>
               <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="font-medium">{user.name}</p>
+                  <p className="text-sm text-gray-600">{user.company}</p>
+                </div>
                 <Avatar>
                   <AvatarFallback>
                     {user.name
@@ -99,10 +97,6 @@ export default function Dashboard() {
                       .join("")}
                   </AvatarFallback>
                 </Avatar>
-                <div className="text-right">
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-sm text-gray-600">{user.company}</p>
-                </div>
               </div>
             </div>
           </div>
@@ -158,7 +152,7 @@ export default function Dashboard() {
                 <FileText className="h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Nenhum orçamento encontrado</h3>
                 <p className="text-gray-600 mb-4">Crie seu primeiro orçamento para começar</p>
-                <Link href="/">
+                <Link href="/dashboard/novo-orcamento">
                   <Button>
                     <Plus className="w-4 h-4 mr-2" />
                     Criar Primeiro Orçamento
