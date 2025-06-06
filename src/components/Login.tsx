@@ -21,15 +21,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { LogIn } from "lucide-react";
+import { Client, Account } from "appwrite";
 
 interface SignInFormData {
   email: string;
   password: string;
 }
 
+const appwrite = new Client()
+  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!);
+
+const account = new Account(appwrite);
+
 export function Login({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  
+  const [error, setError] = useState<string | null>(null);
+
   const form = useForm<SignInFormData>({
     defaultValues: {
       email: "",
@@ -37,10 +45,20 @@ export function Login({ children }: { children: React.ReactNode }) {
     },
   });
 
-  const onSubmit = (data: SignInFormData) => {
-    console.log("Sign In form submitted:", data);
-    // Here you would handle the authentication logic
-    setOpen(false);
+  const onSubmit = async (data: SignInFormData) => {
+    setError(null);
+    try {
+      await account.createEmailPasswordSession(data.email, data.password);
+      setOpen(false);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Erro ao fazer login.");
+      } else if (typeof err === "object" && err !== null && "message" in err) {
+        setError(String((err as { message: unknown }).message) || "Erro ao fazer login.");
+      } else {
+        setError("Erro ao fazer login.");
+      }
+    }
   };
 
   return (
@@ -95,6 +113,10 @@ export function Login({ children }: { children: React.ReactNode }) {
                 </FormItem>
               )}
             />
+
+            {error && (
+              <div className="text-red-600 text-sm text-center">{error}</div>
+            )}
             
             <div className="text-right">
               <button 
