@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +9,24 @@ import { Trash2, Edit, Plus, FileText, Calendar, DollarSign } from "lucide-react
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import Link from "next/link"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { databases } from "@/lib/appwrite"
+
+const DATABASE_ID = "YOUR_DATABASE_ID"
+const COLLECTION_ID = "budgets"
+
+const fetchBudgets = async () => {
+  const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID)
+  return response.documents.map((doc) => ({
+    id: doc.$id,
+    client: doc.client || {},
+    products: doc.products || [],
+    template: doc.template || "",
+    notes: doc.notes || "",
+    createdAt: doc.createdAt || new Date().toISOString(),
+    total: doc.total || 0,
+  }))
+}
 
 interface Client {
   name: string
@@ -38,38 +56,42 @@ interface Budget {
 }
 
 export default function Dashboard() {
-  const [budgets, setBudgets] = useState<Budget[]>([])
+  const queryClient = useQueryClient()
+  const { data: budgets = [] } = useQuery({
+    queryKey: ["budgets"],
+    queryFn: fetchBudgets,
+  })
+
   const [user] = useState({
     name: "João Silva",
     email: "joao@empresa.com",
     company: "Minha Empresa Ltda",
   })
 
-  useEffect(() => {
-    const saved = localStorage.getItem("budgets")
-    if (saved) {
-      setBudgets(JSON.parse(saved))
-    }
-  }, [])
-
-  const deleteBudget = (id: string) => {
+  const deleteBudget = async (id: string) => {
     if (confirm("Tem certeza que deseja excluir este orçamento?")) {
-      const updatedBudgets = budgets.filter((b) => b.id !== id)
-      setBudgets(updatedBudgets)
-      localStorage.setItem("budgets", JSON.stringify(updatedBudgets))
+      try {
+        await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id)
+        queryClient.invalidateQueries({ queryKey: ["budgets"] })
+      } catch (error) {
+        alert("Erro ao excluir orçamento!")
+        console.error(error)
+      }
     }
   }
 
   const getTotalValue = () => {
-    return budgets.reduce((total, budget) => total + budget.total, 0)
+    return budgets.reduce((total: number, budget: Budget) => total + budget.total, 0)
   }
 
   const getThisMonthBudgets = () => {
     const thisMonth = new Date().getMonth()
     const thisYear = new Date().getFullYear()
-    return budgets.filter((budget) => {
+    return budgets.filter((budget: Budget) => {
       const budgetDate = new Date(budget.createdAt)
-      return budgetDate.getMonth() === thisMonth && budgetDate.getFullYear() === thisYear
+      return (
+        budgetDate.getMonth() === thisMonth && budgetDate.getFullYear() === thisYear
+      )
     })
   }
 
@@ -161,14 +183,16 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {budgets.map((budget) => (
+                {budgets.map((budget: Budget) => (
                   <div
                     key={budget.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold">{budget.client.name || "Cliente não informado"}</h3>
+                        <h3 className="font-semibold">
+                          {budget.client.name || "Cliente não informado"}
+                        </h3>
                         <Badge variant="outline" className="capitalize">
                           {budget.template}
                         </Badge>
@@ -191,7 +215,9 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <div className="font-bold text-lg text-green-600">R$ {budget.total.toFixed(2)}</div>
+                        <div className="font-bold text-lg text-green-600">
+                          R$ {budget.total.toFixed(2)}
+                        </div>
                         <div className="text-sm text-gray-500">Total</div>
                       </div>
                       <div className="flex gap-2">

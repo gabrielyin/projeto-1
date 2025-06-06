@@ -10,8 +10,13 @@ import { Separator } from "@/components/ui/separator"
 import { Plus, Trash2, Download, Save, ArrowLeft } from "lucide-react"
 import { BudgetPreview } from "@/components/budget-preview"
 import { TemplateSelector } from "@/components/template-selector"
-import { generatePDF } from "@/lib/pdf-generator"
+import { databases, storage, ID } from "@/lib/appwrite"
+import { generatePDF, generatePDFBlob } from "@/lib/pdf-generator"
 import Link from "next/link"
+
+const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
+const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID!;
+const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!;
 
 interface Client {
   name: string
@@ -28,16 +33,6 @@ interface Product {
   description: string
   quantity: number
   price: number
-}
-
-interface Budget {
-  id: string
-  client: Client
-  products: Product[]
-  template: string
-  notes: string
-  createdAt: string
-  total: number
 }
 
 export default function BudgetGenerator() {
@@ -85,22 +80,55 @@ export default function BudgetGenerator() {
     }, 0)
   }
 
-  const saveBudget = () => {
-    const budget: Budget = {
-      id: Date.now().toString(),
-      client,
-      products,
+  // Helper to upload PDF to Appwrite Storage and return the file URL
+  const uploadFile = async (blob: Blob, filename: string): Promise<string> => {
+    // Convert Blob to File
+    const file = new File([blob], filename, { type: "application/pdf" })
+
+    const response = await storage.createFile(
+      BUCKET_ID,
+      ID.unique(),
+      file
+    )
+    return storage.getFileView(BUCKET_ID, response.$id)
+  }
+
+  const saveBudget = async () => {
+    const budget = {
+      client: JSON.stringify(client),
+      products: JSON.stringify(products),
       template: selectedTemplate,
       notes,
       createdAt: new Date().toISOString(),
       total: calculateTotal(),
+      // pdfUrl will be added after upload
+    };
+
+    try {
+      // 1. Gera o PDF como Blob
+      if (!previewRef.current) throw new Error("Preview não encontrado")
+      const pdfBlob = await generatePDFBlob(previewRef.current)
+
+      // 2. Faz upload do PDF para o Appwrite Storage
+      const filename = `orcamento-${client.name || "cliente"}-${Date.now()}.pdf`
+      const pdfUrl = await uploadFile(pdfBlob, filename)
+
+      // 3. Salva o orçamento no Appwrite Database com o link do PDF
+      await databases.createDocument(
+        DATABASE_ID,
+        COLLECTION_ID,
+        ID.unique(),
+        {
+          ...budget,
+          pdfUrl,
+        }
+      )
+
+      alert("Orçamento salvo com sucesso!")
+    } catch (error) {
+      alert("Erro ao salvar orçamento!")
+      console.error(error)
     }
-
-    const savedBudgets = JSON.parse(localStorage.getItem("budgets") || "[]")
-    const updatedBudgets = [...savedBudgets, budget]
-    localStorage.setItem("budgets", JSON.stringify(updatedBudgets))
-
-    alert("Orçamento salvo com sucesso!")
   }
 
   const downloadPDF = async () => {
