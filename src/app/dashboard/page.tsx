@@ -1,12 +1,8 @@
 import DashboardContent from "./dashboard-content"
 import ProfileCard from "@/components/profile-card"
-import { getLoggedInUser } from "@/lib/appwrite";
-import { redirect } from "next/navigation";
 
 export default async function Dashboard() {
-  const user = await getLoggedInUser();
-  
-  if (!user) redirect("/")
+
 
   return (
     <div className="min-h-screen bg-gray-50">

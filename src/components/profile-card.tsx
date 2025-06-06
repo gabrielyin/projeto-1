@@ -1,59 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Account, Client } from "appwrite";
-
-const client = new Client()
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!);
-
-const account = new Account(client);
-
-interface UserProfile {
-  name?: string;
-  email?: string;
-  labels?: string[];
-}
+import { useUser, UserButton } from "@clerk/nextjs";
 
 export default function ProfileCard() {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const { user, isLoaded } = useUser();
 
-  useEffect(() => {
-    account.get()
-      .then((userData) => setUser(userData))
-      .catch(() => setUser(null));
-  }, []);
-
-  if (!user) {
+  if (!isLoaded) {
     return (
       <div className="flex items-center gap-3 animate-pulse">
         <div className="text-right">
           <p className="font-medium bg-gray-200 rounded w-24 h-5 mb-1"></p>
           <p className="text-sm text-gray-400 bg-gray-200 rounded w-32 h-4"></p>
         </div>
-        <Avatar>
-          <AvatarFallback></AvatarFallback>
-        </Avatar>
+        <div className="w-10 h-10 rounded-full bg-gray-200" />
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
     <div className="flex items-center gap-3">
       <div className="text-right">
-        <p className="font-medium">{user.name || user.email}</p>
-        <p className="text-sm text-gray-600">{user.email}</p>
+        <p className="font-medium">
+          {user.fullName || user.emailAddresses[0]?.emailAddress}
+        </p>
+        <p className="text-sm text-gray-600">
+          {user.emailAddresses[0]?.emailAddress}
+        </p>
       </div>
-      <Avatar>
-        <AvatarFallback>
-          {(user.name || user.email || "?")
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
+      <UserButton afterSignOutUrl="/" />
     </div>
   );
 }

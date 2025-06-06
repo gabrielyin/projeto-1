@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react";
+import { useSignIn } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,22 +22,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { LogIn } from "lucide-react";
-import { Client, Account } from "appwrite";
+import { useRouter } from 'next/navigation'
 
 interface SignInFormData {
   email: string;
   password: string;
 }
 
-const appwrite = new Client()
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!);
-
-const account = new Account(appwrite);
-
 export function Login({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { signIn, isLoaded, setActive } = useSignIn();
+  const router = useRouter()
 
   const form = useForm<SignInFormData>({
     defaultValues: {
@@ -47,14 +44,23 @@ export function Login({ children }: { children: React.ReactNode }) {
 
   const onSubmit = async (data: SignInFormData) => {
     setError(null);
+    if (!isLoaded) return;
     try {
-      await account.createEmailPasswordSession(data.email, data.password);
-      setOpen(false);
+      const result = await signIn.create({
+        identifier: data.email,
+        password: data.password,
+      });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.push('/dashboard')
+        setOpen(false);
+      } else {
+        setError("Verificação adicional necessária.");
+      }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || "Erro ao fazer login.");
-      } else if (typeof err === "object" && err !== null && "message" in err) {
-        setError(String((err as { message: unknown }).message) || "Erro ao fazer login.");
+      if (typeof err === "object" && err !== null) {
+        // @ts-expect-error Clerk error shape
+        setError(err.errors?.[0]?.message || (err as { message?: string }).message || "Erro ao fazer login.");
       } else {
         setError("Erro ao fazer login.");
       }

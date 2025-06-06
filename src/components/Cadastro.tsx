@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react";
+import { useSignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,13 +22,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
-import { Client, Account, ID } from "appwrite";
-
-const appwrite = new Client()
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!);
-
-const account = new Account(appwrite);
 
 interface GetStartedFormData {
   name: string;
@@ -39,6 +33,7 @@ interface GetStartedFormData {
 export function Cadastro({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { signUp, isLoaded } = useSignUp();
 
   const form = useForm<GetStartedFormData>({
     defaultValues: {
@@ -55,23 +50,25 @@ export function Cadastro({ children }: { children: React.ReactNode }) {
       setError("As senhas não coincidem.");
       return;
     }
+    if (!isLoaded) return;
     try {
-      await account.create(
-        ID.unique(),
-        data.email,
-        data.password,
-        data.name
-      );
-      // Optionally, you can log the user in automatically here
+      // Create the user with Clerk
+      await signUp.create({
+        emailAddress: data.email,
+        password: data.password,
+        firstName: data.name,
+      });
+
       setOpen(false);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || "Erro ao criar conta.");
-      } else if (typeof err === "object" && err !== null && "message" in err) {
-        setError(String((err as { message: unknown }).message) || "Erro ao criar conta.");
-      } else {
-        setError("Erro ao criar conta.");
-      }
+      // Optionally, you can redirect or show a message to check email for verification
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.log(err)
+      setError(
+        err.errors?.[0]?.message ||
+        err.message ||
+        "Erro ao criar conta."
+      );
     }
   };
 
