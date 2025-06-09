@@ -1,38 +1,35 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
-import { Plus, Trash2, Download, Save, ArrowLeft } from "lucide-react"
-import { BudgetPreview } from "@/components/budget-preview"
-import { TemplateSelector } from "@/components/template-selector"
-import { databases, storage, ID } from "@/lib/appwrite"
-import { generatePDF, generatePDFBlob } from "@/lib/pdf-generator"
-import Link from "next/link"
-
-const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID!;
-const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID!;
+import { useState, useRef } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Trash2, Download, Save, ArrowLeft } from "lucide-react";
+import { BudgetPreview } from "@/components/budget-preview";
+import { TemplateSelector } from "@/components/template-selector";
+import { generatePDF, generatePDFBlob } from "@/lib/pdf-generator";
+import Link from "next/link";
 
 interface Client {
-  name: string
-  email: string
-  phone: string
-  address: string
-  city: string
-  zipCode: string
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  zipCode: string;
 }
 
 interface Product {
-  id: string
-  name: string
-  description: string
-  quantity: number
-  price: number
+  id: string;
+  name: string;
+  description: string;
+  quantity: number;
+  price: number;
 }
 
 export default function BudgetGenerator() {
@@ -43,13 +40,18 @@ export default function BudgetGenerator() {
     address: "",
     city: "",
     zipCode: "",
-  })
+  });
 
-  const [products, setProducts] = useState<Product[]>([{ id: "1", name: "", description: "", quantity: 1, price: 0 }])
-  const [selectedTemplate, setSelectedTemplate] = useState("modern")
-  const [notes, setNotes] = useState("")
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
-  const previewRef = useRef<HTMLDivElement>(null)
+  const [products, setProducts] = useState<Product[]>(
+    [{ id: "1", name: "", description: "", quantity: 1, price: 0 }]
+  );
+  const [selectedTemplate, setSelectedTemplate] = useState("modern");
+  const [notes, setNotes] = useState("");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const createBudget = useMutation(api.budgets.createBudget);
+  const generatedUploadUrl = useMutation(api.files.generateUploadUrl);
 
   const addProduct = () => {
     const newProduct: Product = {
@@ -58,94 +60,97 @@ export default function BudgetGenerator() {
       description: "",
       quantity: 1,
       price: 0,
-    }
-    setProducts([...products, newProduct])
-  }
+    };
+    setProducts([...products, newProduct]);
+  };
 
   const removeProduct = (id: string) => {
-    setProducts(products.filter((p) => p.id !== id))
-  }
+    setProducts(products.filter((p) => p.id !== id));
+  };
 
   const updateProduct = (
     id: string,
     field: keyof Product,
     value: string | number
   ) => {
-    setProducts(products.map((p) => (p.id === id ? { ...p, [field]: value } : p)))
-  }
+    setProducts(
+      products.map((p) => (p.id === id ? { ...p, [field]: value } : p))
+    );
+  };
 
   const calculateTotal = () => {
     return products.reduce((total, product) => {
-      return total + product.quantity * product.price
-    }, 0)
-  }
+      return total + product.quantity * product.price;
+    }, 0);
+  };
 
-  // Helper to upload PDF to Appwrite Storage and return the file URL
-  const uploadFile = async (blob: Blob, filename: string): Promise<string> => {
-    // Convert Blob to File
-    const file = new File([blob], filename, { type: "application/pdf" })
-
-    const response = await storage.createFile(
-      BUCKET_ID,
-      ID.unique(),
-      file
-    )
-    return storage.getFileView(BUCKET_ID, response.$id)
-  }
+  // Helper to upload PDF (implement your own storage if needed)
+  // For now, we'll skip PDF upload and just save the budget data
+  // If you want to upload PDFs, consider using a third-party storage and save the URL in Convex
 
   const saveBudget = async () => {
     const budget = {
-      client: JSON.stringify(client),
-      products: JSON.stringify(products),
+      client,
+      products,
       template: selectedTemplate,
       notes,
       createdAt: new Date().toISOString(),
       total: calculateTotal(),
-      // pdfUrl will be added after upload
     };
 
     try {
-      // 1. Gera o PDF como Blob
+      // 1. Gera o PDF como Blob (opcional)
       if (!previewRef.current) throw new Error("Preview não encontrado")
-      const pdfBlob = await generatePDFBlob(previewRef.current)
+      const pdfBlob = await generatePDFBlob(previewRef.current);      
+      // const pdfUrl = await uploadFile({ file: pdfBlob }) // Implement if needed
+      const pdfUrl = await uploadFile(pdfBlob);
 
-      // 2. Faz upload do PDF para o Appwrite Storage
-      const filename = `orcamento-${client.name || "cliente"}-${Date.now()}.pdf`
-      const pdfUrl = await uploadFile(pdfBlob, filename)
+      // 2. Salva o orçamento no Convex
+      await createBudget({
+        ...budget,
+        pdfUrl: pdfUrl,
+      });
 
-      // 3. Salva o orçamento no Appwrite Database com o link do PDF
-      await databases.createDocument(
-        DATABASE_ID,
-        COLLECTION_ID,
-        ID.unique(),
-        {
-          ...budget,
-          pdfUrl,
-        }
-      )
-
-      alert("Orçamento salvo com sucesso!")
+      alert("Orçamento salvo com sucesso!");
     } catch (error) {
-      alert("Erro ao salvar orçamento!")
-      console.error(error)
+      alert("Erro ao salvar orçamento!");
+      console.error(error);
     }
+  };
+
+  async function uploadFile(file: File | Blob) {
+    // 1. Get upload URL from Convex
+    const url = await generatedUploadUrl();
+
+    // 2. Upload the file to the URL
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+
+    // 3. Get the storageId from the response
+    const { storageId } = await res.json();
+
+    // 4. Save storageId in your Convex database if needed
+    return storageId;
   }
 
   const downloadPDF = async () => {
-    if (!previewRef.current) return
+    if (!previewRef.current) return;
 
-    setIsGeneratingPDF(true)
+    setIsGeneratingPDF(true);
     try {
-      await generatePDF(previewRef.current, `orcamento-${client.name || "cliente"}`)
+      await generatePDF(previewRef.current, `orcamento-${client.name || "cliente"}`);
       // Salvar automaticamente ao baixar
-      saveBudget()
+      saveBudget();
     } catch (error) {
-      console.error("Erro ao gerar PDF:", error)
-      alert("Erro ao gerar PDF. Tente novamente.")
+      console.error("Erro ao gerar PDF:", error);
+      alert("Erro ao gerar PDF. Tente novamente.");
     } finally {
-      setIsGeneratingPDF(false)
+      setIsGeneratingPDF(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -159,7 +164,7 @@ export default function BudgetGenerator() {
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
               </Link>
-              
+
               <div className="border-l pl-3">
                 <h1 className="text-2xl font-bold text-gray-900">Novo Orçamento</h1>
                 <p className="text-gray-600">Crie orçamentos profissionais em tempo real</p>
@@ -389,5 +394,5 @@ export default function BudgetGenerator() {
         </div>
       </div>
     </div>
-  )
+  );
 }

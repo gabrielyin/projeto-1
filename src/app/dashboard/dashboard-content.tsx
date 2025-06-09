@@ -7,24 +7,9 @@ import { Trash2, Edit, Plus, FileText, Calendar, DollarSign } from "lucide-react
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { databases } from "@/lib/appwrite";
-
-const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID!;
-
-const fetchBudgets = async () => {
-  const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
-  return response.documents.map((doc) => ({
-    id: doc.$id,
-    client: doc.client ? JSON.parse(doc.client) : {},
-    products: doc.products ? JSON.parse(doc.products) : [],
-    template: doc.template || "",
-    notes: doc.notes || "",
-    createdAt: doc.createdAt || new Date().toISOString(),
-    total: doc.total || 0,
-  }));
-};
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 
 interface Client {
   name: string;
@@ -44,7 +29,7 @@ interface Product {
 }
 
 interface Budget {
-  id: string;
+  id: Id<"budgets">;
   client: Client;
   products: Product[];
   template: string;
@@ -54,17 +39,13 @@ interface Budget {
 }
 
 export default function DashboardContent() {
-  const queryClient = useQueryClient();
-  const { data: budgets = [] } = useQuery({
-    queryKey: ["budgets"],
-    queryFn: fetchBudgets,
-  });
+  const budgets = useQuery(api.budgets.listBudgets) ?? [];
+  const deleteBudget = useMutation(api.budgets.deleteBudget);
 
-  const deleteBudget = async (id: string) => {
+  const handleDeleteBudget = async (id: Id<"budgets">) => {
     if (confirm("Tem certeza que deseja excluir este orçamento?")) {
       try {
-        await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id);
-        queryClient.invalidateQueries({ queryKey: ["budgets"] });
+        await deleteBudget({ id });
       } catch (error) {
         alert("Erro ao excluir orçamento!");
         console.error(error);
@@ -189,7 +170,7 @@ export default function DashboardContent() {
                           <Edit className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm" onClick={() => deleteBudget(budget.id)}>
+                      <Button variant="outline" size="sm" onClick={() => handleDeleteBudget(budget.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
