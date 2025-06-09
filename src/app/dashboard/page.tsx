@@ -1,7 +1,7 @@
 import DashboardContent from "./dashboard-content"
 import ProfileCard from "@/components/profile-card"
 
-export default async function Dashboard() {
+export default function Dashboard() {
 
 
   return (

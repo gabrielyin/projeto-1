@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Cadastro } from "./cadastro";
 import { Login } from "./login";
 import { Authenticated, Unauthenticated } from "convex/react";
+import Link from "next/link";
 
 export function Header() {
   const navItems = [
@@ -38,7 +39,9 @@ export function Header() {
 
           <div className="hidden md:flex items-center space-x-4">
             <Authenticated>
-              <Button variant="default">Dashboard</Button>
+              <Link href={"/dashboard"}>
+                <Button variant="default">Dashboard</Button>
+              </Link>
             </Authenticated>
             <Unauthenticated>
               <Login>
@@ -77,7 +80,9 @@ export function Header() {
                   <Button>Começar</Button>
                 </Unauthenticated>
                 <Authenticated>
-                  <Button variant="default">Dashboard</Button>
+                  <Link href={"/dashboard"}>
+                    <Button variant="default">Dashboard</Button>
+                  </Link>
                 </Authenticated>
               </div>
             </div>

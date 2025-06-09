@@ -108,9 +108,17 @@ export default function DashboardContent() {
 
       {/* Budgets List */}
       <Card>
-        <CardHeader>
-          <CardTitle>Orçamentos Salvos</CardTitle>
-          <CardDescription>Gerencie todos os seus orçamentos criados</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Orçamentos Salvos</CardTitle>
+            <CardDescription>Gerencie todos os seus orçamentos criados</CardDescription>
+          </div>
+          <Link href="/dashboard/novo-orcamento">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Orçamento
+            </Button>
+          </Link>
         </CardHeader>
         <CardContent>
           {budgets.length === 0 ? (
@@ -118,12 +126,6 @@ export default function DashboardContent() {
               <FileText className="h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-semibold mb-2">Nenhum orçamento encontrado</h3>
               <p className="text-gray-600 mb-4">Crie seu primeiro orçamento para começar</p>
-              <Link href="/dashboard/novo-orcamento">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar Primeiro Orçamento
-                </Button>
-              </Link>
             </div>
           ) : (
             <div className="space-y-4">
