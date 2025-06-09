@@ -3,11 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, Plus, FileText, Calendar, DollarSign } from "lucide-react";
+import { Trash2, Edit, Plus, FileText, Calendar, DollarSign, Download } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
-import { Preloaded, useMutation, usePreloadedQuery } from "convex/react";
+import { Preloaded, useConvex, useMutation, usePreloadedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
@@ -45,8 +45,17 @@ export default function DashboardContent(props: {
   const budgets = usePreloadedQuery(props.preloadedBudgets);
   const deleteBudget = useMutation(api.budgets.deleteBudget);
   const deleteFile = useMutation(api.files.deleteById);
+  const convex = useConvex();
 
-  console.log(budgets);
+  const handleDownloadFile = async (storageId: Id<"_storage">) => {
+    try {
+      const url = await convex.query(api.files.getFileUrl, { storageId });
+      
+      if (url) window.open(url, "_blank");
+    } catch {
+      alert("Não foi possível baixar o arquivo!")
+    }
+  }
 
   const handleDeleteBudget = async (id: Id<"budgets">, fileId: Id<"_storage">) => {
     if (confirm("Tem certeza que deseja excluir este orçamento?")) {
@@ -176,10 +185,12 @@ export default function DashboardContent(props: {
                       <div className="text-sm text-gray-500">Total</div>
                     </div>
                     <div className="flex gap-2">
+                      <Button onClick={() => handleDownloadFile(budget.pdfFileId)} variant="outline" size="sm">
+                        <Download className="w-4 h-4" />
+                      </Button>
                       <Link href={`/?edit=${budget.id}`}>
                         <Button variant="outline" size="sm">
                           <Edit className="w-4 h-4" />
-                          {/* {JSON.stringify(budget)} */}
                         </Button>
                       </Link>
                       <Button variant="outline" size="sm" onClick={() => handleDeleteBudget(budget.id, budget.pdfFileId)}>

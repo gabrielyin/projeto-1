@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query  } from "./_generated/server";
 import { v } from "convex/values";
 
 export const generateUploadUrl = mutation({
@@ -13,5 +13,12 @@ export const deleteById = mutation({
   },
   handler: async (ctx, args) => {
     return await ctx.storage.delete(args.storageId);
+  },
+});
+
+export const getFileUrl = query({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.storageId);
   },
 });

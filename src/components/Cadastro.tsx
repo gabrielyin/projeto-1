@@ -63,7 +63,6 @@ export function Cadastro({ children }: { children: React.ReactNode }) {
       // Optionally, you can redirect or show a message to check email for verification
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.log(err)
       setError(
         err.errors?.[0]?.message ||
         err.message ||

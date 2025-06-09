@@ -5,7 +5,7 @@ import { api } from "../../../convex/_generated/api";
 
 export default async function Dashboard() {
   const budgets = await preloadQuery(api.budgets.listBudgets);
-  console.log(budgets)
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
