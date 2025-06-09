@@ -1,8 +1,11 @@
+'use client'
+
 import { Button } from "@/components/ui/button";
 import { FileText, Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Cadastro } from "./cadastro";
 import { Login } from "./login";
+import { Authenticated, Unauthenticated } from "convex/react";
 
 export function Header() {
   const navItems = [
@@ -20,27 +23,32 @@ export function Header() {
           <span className="text-xl font-bold text-gray-900">Precify</span>
         </div>
         
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navItems.map((item) => (
-            <a
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <a
               key={item.name}
               href={item.href}
               className="text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              {item.name}
-            </a>
-          ))}
-        </nav>
+              >
+                {item.name}
+              </a>
+            ))}
+          </nav>
 
-        <div className="hidden md:flex items-center space-x-4">
-          <Login>
-            <Button variant="ghost">Sign In</Button>
-          </Login>
-          <Cadastro>
-            <Button>Começar</Button>
-          </Cadastro>
-        </div>
+          <div className="hidden md:flex items-center space-x-4">
+            <Authenticated>
+              <Button variant="default">Dashboard</Button>
+            </Authenticated>
+            <Unauthenticated>
+              <Login>
+                <Button variant="ghost">Sign In</Button>
+              </Login>
+              <Cadastro>
+                <Button>Começar</Button>
+              </Cadastro>
+            </Unauthenticated>
+          </div>
 
         {/* Mobile Navigation */}
         <Sheet>
@@ -50,7 +58,10 @@ export function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent>
-            <div className="flex flex-col space-y-4 mt-8">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col space-y-4 px-4">
               {navItems.map((item) => (
                 <a
                   key={item.name}
@@ -61,8 +72,13 @@ export function Header() {
                 </a>
               ))}
               <div className="flex flex-col space-y-2 pt-4">
-                <Button variant="ghost">Sign In</Button>
-                <Button>Começar</Button>
+                <Unauthenticated>
+                  <Button variant="ghost">Sign In</Button>
+                  <Button>Começar</Button>
+                </Unauthenticated>
+                <Authenticated>
+                  <Button variant="default">Dashboard</Button>
+                </Authenticated>
               </div>
             </div>
           </SheetContent>
