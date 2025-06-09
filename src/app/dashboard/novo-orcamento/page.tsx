@@ -108,7 +108,7 @@ export default function BudgetGenerator() {
       // 2. Salva o orçamento no Convex
       await createBudget({
         ...budget,
-        pdfUrl: pdfUrl,
+        pdfFileId: pdfUrl,
       });
 
       alert("Orçamento salvo com sucesso!");

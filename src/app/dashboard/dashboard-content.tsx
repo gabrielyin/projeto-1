@@ -7,7 +7,7 @@ import { Trash2, Edit, Plus, FileText, Calendar, DollarSign } from "lucide-react
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
-import { useQuery, useMutation } from "convex/react";
+import { Preloaded, useMutation, usePreloadedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
@@ -36,15 +36,24 @@ interface Budget {
   notes: string;
   createdAt: string;
   total: number;
+  pdfFileId: Id<"_storage">;
 }
 
-export default function DashboardContent() {
-  const budgets = useQuery(api.budgets.listBudgets) ?? [];
+export default function DashboardContent(props: {
+  preloadedBudgets: Preloaded<typeof api.budgets.listBudgets>
+}) {
+  const budgets = usePreloadedQuery(props.preloadedBudgets);
   const deleteBudget = useMutation(api.budgets.deleteBudget);
+  const deleteFile = useMutation(api.files.deleteById);
 
-  const handleDeleteBudget = async (id: Id<"budgets">) => {
+  console.log(budgets);
+
+  const handleDeleteBudget = async (id: Id<"budgets">, fileId: Id<"_storage">) => {
     if (confirm("Tem certeza que deseja excluir este orçamento?")) {
       try {
+        if (fileId) {
+          await deleteFile({ storageId: fileId });
+        }
         await deleteBudget({ id });
       } catch (error) {
         alert("Erro ao excluir orçamento!");
@@ -170,9 +179,10 @@ export default function DashboardContent() {
                       <Link href={`/?edit=${budget.id}`}>
                         <Button variant="outline" size="sm">
                           <Edit className="w-4 h-4" />
+                          {/* {JSON.stringify(budget)} */}
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm" onClick={() => handleDeleteBudget(budget.id)}>
+                      <Button variant="outline" size="sm" onClick={() => handleDeleteBudget(budget.id, budget.pdfFileId)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

@@ -21,7 +21,7 @@ export const createBudget = mutation({
     notes: v.string(),
     createdAt: v.string(),
     total: v.number(),
-    pdfUrl: v.optional(v.string()),
+    pdfFileId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("budgets", {

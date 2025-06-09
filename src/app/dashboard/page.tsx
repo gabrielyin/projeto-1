@@ -1,9 +1,11 @@
 import DashboardContent from "./dashboard-content"
 import ProfileCard from "@/components/profile-card"
+import { preloadQuery } from "convex/nextjs";
+import { api } from "../../../convex/_generated/api";
 
-export default function Dashboard() {
-
-
+export default async function Dashboard() {
+  const budgets = await preloadQuery(api.budgets.listBudgets);
+  console.log(budgets)
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -21,7 +23,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-     <DashboardContent />
+     <DashboardContent preloadedBudgets={budgets} />
     </div>
   )
 }
