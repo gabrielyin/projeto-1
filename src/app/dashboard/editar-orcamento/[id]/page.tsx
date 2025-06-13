@@ -121,7 +121,7 @@ export default function EditBudgetPage() {
     const { storageId: newPdfFileId } = await res.json();
 
     // Delete previous file if it exists
-    if (budget.pdfFileId) {
+    if (budget && budget.pdfFileId) {
       await deleteFile({ storageId: budget.pdfFileId });
     }
 

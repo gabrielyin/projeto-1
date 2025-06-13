@@ -62,7 +62,7 @@ interface Budget {
   notes: string;
   createdAt: string;
   total: number;
-  pdfFileId: Id<"_storage">;
+  pdfFileId?: Id<"_storage">;
 }
 
 export default function DashboardContent(props: {
@@ -214,7 +214,12 @@ export default function DashboardContent(props: {
                       <div className="text-sm text-gray-500">Total</div>
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={() => handleDownloadFile(budget.pdfFileId)} variant="outline" size="sm">
+                      <Button
+                        onClick={() => budget.pdfFileId && handleDownloadFile(budget.pdfFileId)}
+                        variant="outline"
+                        size="sm"
+                        disabled={!budget.pdfFileId}
+                      >
                         <Download className="w-4 h-4" />
                       </Button>
                       <Link href={`/dashboard/editar-orcamento/${budget.id}`}>
@@ -232,13 +237,13 @@ export default function DashboardContent(props: {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete budget?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This action is irreversible. Are you sure you want to delete this budget?
+                              Tem certeza que deseja deletar este orçamento? Esta ação não pode ser desfeita.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => handleDeleteBudget(budget.id, budget.pdfFileId)}
+                              onClick={() => handleDeleteBudget(budget.id, budget.pdfFileId!)}
                             >
                               Delete
                             </AlertDialogAction>
