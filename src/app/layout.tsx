@@ -4,6 +4,7 @@ import "./globals.css";
 import { ReactQueryClientProvider } from "@/components/react-query-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "@/components/convex-client-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
             <ClerkProvider>
               <ConvexClientProvider>{children}</ConvexClientProvider>
             </ClerkProvider>
+            <Toaster />
         </body>
       </html>
     </ReactQueryClientProvider>

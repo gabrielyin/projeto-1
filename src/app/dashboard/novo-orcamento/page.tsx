@@ -14,6 +14,7 @@ import { BudgetPreview } from "@/components/budget-preview";
 import { TemplateSelector } from "@/components/template-selector";
 import { generatePDF, generatePDFBlob } from "@/lib/pdf-generator";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface Client {
   name: string;
@@ -111,10 +112,13 @@ export default function BudgetGenerator() {
         pdfFileId: pdfUrl,
       });
 
-      alert("Orçamento salvo com sucesso!");
-    } catch (error) {
-      alert("Erro ao salvar orçamento!");
-      console.error(error);
+      toast.success("Budget saved!", {
+        description: "Your budget has been saved successfully.",
+      });
+    } catch {
+      toast.error("Save failed.", {
+        description: "Could not save the budget.",
+      });
     }
   };
 
@@ -142,11 +146,14 @@ export default function BudgetGenerator() {
     setIsGeneratingPDF(true);
     try {
       await generatePDF(previewRef.current, `orcamento-${client.name || "cliente"}`);
-      // Salvar automaticamente ao baixar
-      saveBudget();
+      toast.success("PDF generated successfully!", {
+        description: "Your budget PDF is ready for download.",
+      });
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
-      alert("Erro ao gerar PDF. Tente novamente.");
+      toast.error("Download failed.", {
+        description: "Could not download the file.",
+      });
     } finally {
       setIsGeneratingPDF(false);
     }

@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { LogIn } from "lucide-react";
 import { useRouter } from 'next/navigation'
+import { toast } from "sonner";
 
 interface SignInFormData {
   email: string;
@@ -52,12 +53,18 @@ export function Login({ children }: { children: React.ReactNode }) {
       });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        toast.success("Login successful!", {
+          description: "Welcome back!",
+        });
         router.push('/dashboard')
         setOpen(false);
       } else {
         setError("Verificação adicional necessária.");
       }
     } catch (err: unknown) {
+      toast.error("Login failed.", {
+        description: "Please check your credentials and try again.",
+      });
       if (typeof err === "object" && err !== null) {
         // @ts-expect-error Clerk error shape
         setError(err.errors?.[0]?.message || (err as { message?: string }).message || "Erro ao fazer login.");

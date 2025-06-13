@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 
 interface GetStartedFormData {
   name: string;
@@ -48,6 +49,9 @@ export function Cadastro({ children }: { children: React.ReactNode }) {
     setError(null);
     if (data.password !== data.confirmPassword) {
       setError("As senhas não coincidem.");
+      toast.error("Signup failed.", {
+        description: "Passwords do not match.",
+      });
       return;
     }
     if (!isLoaded) return;
@@ -60,7 +64,9 @@ export function Cadastro({ children }: { children: React.ReactNode }) {
       });
 
       setOpen(false);
-      // Optionally, you can redirect or show a message to check email for verification
+      toast.success("Signup successful!", {
+        description: "Your account has been created.",
+      });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(
@@ -68,6 +74,9 @@ export function Cadastro({ children }: { children: React.ReactNode }) {
         err.message ||
         "Erro ao criar conta."
       );
+      toast.error("Signup failed.", {
+        description: "Something went wrong during signup.",
+      });
     }
   };
 

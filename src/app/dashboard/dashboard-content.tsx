@@ -1,15 +1,41 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, Plus, FileText, Calendar, DollarSign, Download } from "lucide-react";
+import {
+  Trash2,
+  Edit,
+  Plus,
+  FileText,
+  Calendar,
+  DollarSign,
+  Download,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
 import { Preloaded, useConvex, useMutation, usePreloadedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface Client {
   name: string;
@@ -40,7 +66,7 @@ interface Budget {
 }
 
 export default function DashboardContent(props: {
-  preloadedBudgets: Preloaded<typeof api.budgets.listBudgets>
+  preloadedBudgets: Preloaded<typeof api.budgets.listBudgets>;
 }) {
   const budgets = usePreloadedQuery(props.preloadedBudgets);
   const deleteBudget = useMutation(api.budgets.deleteBudget);
@@ -50,24 +76,27 @@ export default function DashboardContent(props: {
   const handleDownloadFile = async (storageId: Id<"_storage">) => {
     try {
       const url = await convex.query(api.files.getFileUrl, { storageId });
-      
+
       if (url) window.open(url, "_blank");
     } catch {
-      alert("Não foi possível baixar o arquivo!")
+      alert("Não foi possível baixar o arquivo!");
     }
-  }
+  };
 
   const handleDeleteBudget = async (id: Id<"budgets">, fileId: Id<"_storage">) => {
-    if (confirm("Tem certeza que deseja excluir este orçamento?")) {
-      try {
-        if (fileId) {
-          await deleteFile({ storageId: fileId });
-        }
-        await deleteBudget({ id });
-      } catch (error) {
-        alert("Erro ao excluir orçamento!");
-        console.error(error);
+    try {
+      if (fileId) {
+        await deleteFile({ storageId: fileId });
       }
+      await deleteBudget({ id });
+      toast.success("Budget deleted!", {
+        description: "The budget was deleted successfully.",
+      });
+    } catch (error) {
+      toast.error("Delete failed.", {
+        description: "Could not delete the budget.",
+      });
+      console.error(error);
     }
   };
 
@@ -193,9 +222,29 @@ export default function DashboardContent(props: {
                           <Edit className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Button variant="outline" size="sm" onClick={() => handleDeleteBudget(budget.id, budget.pdfFileId)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete budget?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action is irreversible. Are you sure you want to delete this budget?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteBudget(budget.id, budget.pdfFileId)}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </div>
