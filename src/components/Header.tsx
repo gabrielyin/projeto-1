@@ -3,8 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { FileText, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Cadastro } from "./cadastro";
-import { Login } from "./login";
 import { Authenticated, Unauthenticated } from "convex/react";
 import Link from "next/link";
 
@@ -44,12 +42,12 @@ export function Header() {
               </Link>
             </Authenticated>
             <Unauthenticated>
-              <Login>
+              <Link href={"/sign-in"}>
                 <Button variant="ghost">Sign In</Button>
-              </Login>
-              <Cadastro>
+              </Link>
+              <Link href={"/sign-up"}>
                 <Button>Começar</Button>
-              </Cadastro>
+              </Link>
             </Unauthenticated>
           </div>
 
@@ -74,6 +72,7 @@ export function Header() {
                   {item.name}
                 </a>
               ))}
+
               <div className="flex flex-col space-y-2 pt-4">
                 <Unauthenticated>
                   <Button variant="ghost">Sign In</Button>

@@ -177,8 +177,7 @@ export default function DashboardContent(props: {
           ) : (
             <div className="space-y-4">
               {budgets.map((budget: Budget) => (
-                <Link
-                  href={`/dashboard/editar-orcamento/${budget.id}`}
+                <div
                   key={budget.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -218,7 +217,7 @@ export default function DashboardContent(props: {
                       <Button onClick={() => handleDownloadFile(budget.pdfFileId)} variant="outline" size="sm">
                         <Download className="w-4 h-4" />
                       </Button>
-                      <Link href={`/?edit=${budget.id}`}>
+                      <Link href={`/dashboard/editar-orcamento/${budget.id}`}>
                         <Button variant="outline" size="sm">
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -248,7 +247,7 @@ export default function DashboardContent(props: {
                       </AlertDialog>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}
