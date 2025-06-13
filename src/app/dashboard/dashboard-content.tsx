@@ -177,7 +177,8 @@ export default function DashboardContent(props: {
           ) : (
             <div className="space-y-4">
               {budgets.map((budget: Budget) => (
-                <div
+                <Link
+                  href={`/dashboard/editar-orcamento/${budget.id}`}
                   key={budget.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
@@ -247,7 +248,7 @@ export default function DashboardContent(props: {
                       </AlertDialog>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
